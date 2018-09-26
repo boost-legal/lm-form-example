@@ -1,0 +1,121 @@
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>Lawmatics Custom Form Example</title>
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/tachyons/4.11.1/tachyons.min.css'>
+  <link rel="stylesheet" href="lawmatics-form.css">
+</head>
+<body>
+
+<!-- 1. Open https://app.lawmatics.com/settings/tracking-settings -->
+<!-- 2. Create a new Tracking WebSite OR Click the eye icon to open an existing Tracking website -->
+<!-- 3. Copy and paste your snippet -->
+
+<!-- Paste your snippet, this is one example -->
+<!-- Start Lawmatics Pixel Snippet -->
+<script>
+  !function(e,t,n,a,i,s,c,o,l){e[i]||(c=e[i]=function(){c.process?c.process.apply(c,arguments):c.queue.push(arguments)},c.queue=[],c.t=1*new Date,o=t.createElement(n),o.async=1,o.src=a+'?t='+Math.ceil(new Date/s)*s,l=t.getElementsByTagName(n)[0],l.parentNode.insertBefore(o,l))}(window,document,'script','https://navi.lawmatics.com/navi.min.js','lm_navi',864e5),lm_navi('init','FORM_UID'),lm_navi('event','pageload');
+</script>
+<!-- End Lawmatics Pixel Snippet -->
+<!-- REPLACE FORM_UID TO YOUR FORM_UID. You can get in FORM API DETAILS -->
+<!-- REPLACE Form Input names with the input names provided from FORM API DETAILS -->
+<form id="LMForm" data-lawmatics="form"  method="post" action='https://api.lawmatics.com/v1/forms/FORM_UID/submit' class="lm-form flex flex-wrap mv3" novalidate>
+  <div class="w-50-l w-100 pr2-l mb2">
+    <div class="fs13 boost-secondary-70 booster-bold lh-copy">First Name</div>
+    <div class="pv1 validate-input relative">
+      <input class="w-100 field booster-bold transitionAll" required type="text" name="first_name" placeholder="John" />
+    </div>
+  </div>
+  <div class="w-50-l w-100 pl2-l mb2">
+    <div class="fs13 boost-secondary-70 booster-bold lh-copy">Last Name</div>
+    <div class="pv1 validate-input relative">
+      <input class="w-100 field booster-bold transitionAll" required type="text" name="last_name" placeholder="Smith" />
+    </div>
+  </div>
+  <div class="w-50-l w-100 pr2-l mb2">
+    <div class="fs13 boost-secondary-70 booster-bold lh-copy">Email</div>
+    <div class="pv1 validate-input relative">
+      <input class="w-100 field booster-bold transitionAll" required id="email" type="email" name="email" placeholder="name@site.domain" />
+    </div>
+  </div>
+  <div class="w-50-l w-100 pl2-l mb2">
+    <div class="fs13 boost-secondary-70 booster-bold lh-copy">Phone</div>
+    <div class="pv1 validate-input relative">
+      <input class="phoneNumber w-100 field booster-bold transitionAll" required type="tel" name="phone" placeholder="(123)456-7890" />
+    </div>
+  </div>
+  <div class="w-100 flex items-center justify-center">
+    <button class="w-100 mw5-ns booster-bold br3 ba bw1px pv2 ph4 mt2 boost-white bg-boost-primary b--boost-primary bg-animate hover-bg-primary-30 ttu pointer outline-0 lh-copy" type="submit">Request a demo</button>
+  </div>
+</form>
+<script>
+  /* BEGIN: Form Helpers */
+
+  function responseFunction(event) {
+    var response = event.target.responseText;
+    if (event.target.status == 422) {
+      var errors = JSON.parse(response).errors;
+      errors.forEach(function(error) {
+        var el = fieldEls.find(function(el) { return el.name === error.field_id });
+        var parentEl = el.parentElement
+        parentEl.classList.add("alert-validate");
+        parentEl.setAttribute("data-validate", error.title);
+        submitButton.disabled = false;
+        submitButton.innerHTML = initialSubmitCTA;
+      });
+    } else if (event.target.status == 204) {
+      var html = successMessage;
+      form.innerHTML = html;
+    }
+  }
+
+  function phoneFormat(input){
+    input = input.replace(/[^0-9/,/(/)/x/+/ -/]/g,"");
+    return input;
+  }
+
+  // Function responsible to do Async call
+  function sendData(form) {
+    var XHR = new XMLHttpRequest();
+    var FD = new FormData(form);
+    XHR.addEventListener("load", responseFunction);
+    XHR.addEventListener("error", function() {
+      alert('Something went wrong. Please try again.');
+    });
+    XHR.open("POST", form.getAttribute('action'));
+    XHR.send(FD);
+  }
+  /* END: Form Helpers */
+
+  // Get the Form
+  var form = document.getElementById("LMForm");
+
+  // Define the success Message
+  var successMessage = '<div class="w-100 tc mv5"><h4 class="boost-success">Thank you for your interest</h4><p class="fs15 boost-secondary-50">A member of our team will reach out to you shortly</p></div>';
+
+  // GET all fields from the form
+  var fieldEls = Array.from(form.getElementsByTagName("input"));
+  // GET the submit button
+  var submitButton = form.querySelectorAll('[type="submit"]')[0];
+  // GET the initial content of the button ("Request a demo")
+  var initialSubmitCTA = submitButton.innerHTML;
+
+  // Listen for the Form submit action
+  form.addEventListener("submit", function (event) {
+    event.preventDefault();
+    // Remove all alerts before submitting
+    fieldEls.forEach(function (el) {
+      el.parentElement.classList.remove("alert-validate");
+    el.parentElement.removeAttribute("data-validate");
+  });
+    // call the function responsible to do an Ajax Request
+    sendData(form);
+    submitButton.disabled = true;
+    submitButton.innerHTML = "Wait...";
+  });
+  var tel = form.getElementsByClassName("phoneNumber")[0];
+  tel.addEventListener("keyup",function(evt){
+    tel.value = phoneFormat(tel.value);
+  });
+</script>
+</body>
